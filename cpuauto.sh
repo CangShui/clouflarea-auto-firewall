@@ -1,109 +1,33 @@
-email="1000@qq.com"
-globalapi="7777777777777777777777777"
-rulesid1="666666666666666666666666666"
-rulesid2="8888888888888888888888888"
-zoneid="333333333333333333333333333"
-mode="cpu"  #判断服务器负载方式 load负载法  cpu  CPU百分比法  只能选一个
-keeptime=240   #开盾负载下降后持续多少秒，进行尝试关盾
-
-if [ "$mode" = "cpu" ];
+#https://github.com/CangShui/clouflarea-auto-firewall
+email="6666666@live.com"
+globalapi="876666627b"
+rulesid1="1146666665"
+rulesid2="c8666666ce"
+zoneid="f266666c18"
+maxload="5" #范围0~10.设置10即为满载时开盾，5即一半负载时开盾
+keeptime=1200  #可访问后持续多少秒，进行尝试关盾
+cfile="/home/cf_uptime/"
+lasttime=$( cat $cfile"xtime.txt" 2>/dev/null )
+#==================================================#
+mkdir "$cfile" 2>/dev/null
+cpu_num=$( grep -c 'model name' /proc/cpuinfo ) #cpu总核数 
+cpu_load=$( uptime | awk '{print $8}' | awk '{sub(/.$/,"")}1' ) #系统1分钟的平均负载 
+cpu_load=$(echo "$cpu_load * 100" | bc | awk '{print int($0)}' )
+cpu_maxload=`expr $cpu_num \* $maxload \* 10`
+nowtime=$(date +%s)
+echo -e "cpu_load数值为：$cpu_load ，cpu_maxload数值为：$cpu_maxload"
+if [[ $lasttime -eq "" ]]
 then
-check=85   #5秒内CPU连续超过85 则开盾【可以根据您的服务器负荷情况调整】
-#系统空闲时间
-TIME_INTERVAL=5
-time=$(date "+%Y-%m-%d %H:%M:%S")
-LAST_CPU_INFO=$(cat /proc/stat | grep -w cpu | awk '{print $2,$3,$4,$5,$6,$7,$8}')
-LAST_SYS_IDLE=$(echo $LAST_CPU_INFO | awk '{print $4}')
-LAST_TOTAL_CPU_T=$(echo $LAST_CPU_INFO | awk '{print $1+$2+$3+$4+$5+$6+$7}')
-sleep ${TIME_INTERVAL}
-NEXT_CPU_INFO=$(cat /proc/stat | grep -w cpu | awk '{print $2,$3,$4,$5,$6,$7,$8}')
-NEXT_SYS_IDLE=$(echo $NEXT_CPU_INFO | awk '{print $4}')
-NEXT_TOTAL_CPU_T=$(echo $NEXT_CPU_INFO | awk '{print $1+$2+$3+$4+$5+$6+$7}')
-
-#系统空闲时间
-SYSTEM_IDLE=`echo ${NEXT_SYS_IDLE} ${LAST_SYS_IDLE} | awk '{print $1-$2}'`
-#CPU总时间
-TOTAL_TIME=`echo ${NEXT_TOTAL_CPU_T} ${LAST_TOTAL_CPU_T} | awk '{print $1-$2}'`
-load=`echo ${SYSTEM_IDLE} ${TOTAL_TIME} | awk '{printf "%.2f", 100-$1/$2*100}'`
-else
-load=$(cat /proc/loadavg | colrm 5)
-check=$(cat /proc/cpuinfo | grep "processor" | wc -l)
-
+  echo -e "未开验证码"
+else  
+  echo -e "数据正常"
+  gaptime=`expr $nowtime - $lasttime`
+  echo -e "距离上次开盾已经：$gaptime S ，上次时间为：$lasttime"
 fi
-
-if [ ! -f "/home/status.txt" ];then
-echo "" > /home/status.txt
-else
-status=$(cat /home/status.txt)
-echo $status
-fi
-now=$(date +%s)
-time=$(date +%s -r /home/status.txt)
-
-
-
-echo "当前$mode负载:$load"
-if [[ $status -eq 1 ]]
+if [[ $cpu_load -gt $cpu_maxload ]]&&[[ $lasttime -eq "" ]]
 then
-echo "当前开盾中"
-else
-echo "当前未开盾"
-fi
-
-newtime=`expr $now - $time`
-closetime=`expr $keeptime - $newtime`
-
-if [[ $load <$check ]]&&[[ $status -eq 1 ]]&&[[ $newtime -gt $keeptime ]]   
-then
-echo -e "\n$mode负载低于$check，当前已开盾超过半小时($newtime秒)，尝试关盾"
-cResult=$(
-	curl -X PUT \
-     -H "X-Auth-Email: $email" \
-     -H "X-Auth-Key: $globalapi" \
-     -H "Content-Type: application/json" \
-     -d '{
-	  "id": "$rulesid1",
-      "paused": true,
-      "description": "全部都验证码",
-      "action": "challenge",
-      "priority": 1000,
-	  "filter": {
-        "id": "'$rulesid2'"
-      }
-     }' "https://api.cloudflare.com/client/v4/zones/$zoneid/firewall/rules/$rulesid1"
-	)
-echo $cResult
-size=${#cResult}
-if [[ $size -gt 10 ]]
-then
-  echo 0 > /home/status.txt
-  echo -e "\n关盾成功"
-fi  
-  
-elif [[ $load <$check ]]
-then
-echo -e "\n$mode负载低于$check，不做任何改变,$newtime秒"
-if [[ $status -eq 1 ]]
-then
-  echo -e "将于$closetime秒后关盾"
-fi                        
-exit
-                      
-elif [[ $load >$check ]] && [[ $status -eq 1 ]] && [[ $newtime -gt $keeptime ]]  
-then
-echo -e "\n$mode负载高于$check，当前已开盾超过$newtime秒，盾无效，请联系管理员定制其他方案"
-exit
-  
-elif [[ $load >$check ]] && [[ $status -eq 1 ]]
-then
-echo -e "\n$mode负载高于$check，当前已开盾($newtime秒)，请再观察"
-exit  
-                      
-elif [[ $load >$check ]]
-then
-echo -e "\n$mode负载高于$check，开启防御规则"  
-cResult=$(
-	  curl -X PUT \
+     echo "一分钟平均负载已超过阈值，开验证码"
+	 curl -X PUT \
      -H "X-Auth-Email: $email" \
      -H "X-Auth-Key: $globalapi" \
      -H "Content-Type: application/json" \
@@ -116,15 +40,41 @@ cResult=$(
 	  "filter": {
         "id": "'$rulesid2'"
       }
-         }' "https://api.cloudflare.com/client/v4/zones/$zoneid/firewall/rules/$rulesid1"
-	    )
-echo $cResult
-size=${#cResult}
-if [[ $size -gt 10 ]]
-then
-  echo 1 > /home/status.txt
-  echo -e "\n开盾成功"
-fi    
+     }' "https://api.cloudflare.com/client/v4/zones/$zoneid/firewall/rules/$rulesid1"
+        rm -rf $cfile"xtime.txt"
+		lasttime=$(date +%s)
+        echo $lasttime >> $cfile"xtime.txt"
+        echo -e "\n开验证码成功"
 else
-echo 0 > /home/status.txt  
+        if [[ $cpu_load -lt $cpu_maxload ]]&&[[ $gaptime -ge $keeptime ]]
+        then
+          echo -e "\n开盾时间已有$gaptime，超过$keeptime，且一分钟平均负载已低于阈值，尝试关盾"
+          	curl -X PUT \
+           -H "X-Auth-Email: $email" \
+           -H "X-Auth-Key: $globalapi" \
+     	   -H "Content-Type: application/json" \
+           -d '{
+     	   "id": "$rulesid1",
+           "paused": true,
+           "description": "全部都验证码",
+           "action": "challenge",
+           "priority": 1000,
+       	    "filter": {
+            "id": "'$rulesid2'"
+             }
+            }' "https://api.cloudflare.com/client/v4/zones/$zoneid/firewall/rules/$rulesid1"
+            rm -rf $cfile"xtime.txt"
+        else
+           if [[ $cpu_load -ge $cpu_maxload ]]&&[[ $gaptime -ge $keeptime ]]
+           then
+           echo -e "\n开盾时间已有$gaptime，超过$keeptime，但是负载仍然较高暂不关验证码，请自行排查原因"
+           else         		      
+			  if [[ $lasttime -eq "" ]]
+              then
+			  echo -e ""
+              else  
+              echo -e "\n开盾时间有$gaptime，未超过$keeptime，不关验证码或无需开验证码" 
+              fi			  
+           fi
+        fi
 fi
