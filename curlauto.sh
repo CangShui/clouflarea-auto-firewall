@@ -1,8 +1,8 @@
 email="s8s@live.com"
-globalapi="87ab5f151f29032830da82c9d81c000c1627b"
-rulesid1="114a29e770b14157902e3793c71c2905"
-rulesid2="c87f0740f992482abc77b893d479e0ce"
-zoneid="f28ae8dfce3e220057e367bd1ac2ec18"
+globalapi="87ab5f151f2901627b"
+rulesid1="114a29e770bc2905"
+rulesid2="c87f0740f3d479e0ce"
+zoneid="f28a2ec18"
 keeptime=1200  #可访问后持续多少秒，进行尝试关盾
 curlnum=5      #测试多少次网站状态码，不建议高于10，数值越高网站压力越大
 minsuc=4    #网站至少正常访问多少次，否则就开验证码
