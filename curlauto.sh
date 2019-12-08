@@ -1,14 +1,14 @@
-email="s8s@live.com"
-globalapi="87ab5f151f2901627b"
-rulesid1="114a29e770bc2905"
-rulesid2="c87f0740f3d479e0ce"
-zoneid="f28a2ec18"
+email="77@live.com"
+globalapi="77a7727b"
+rulesid1="114772905"
+rulesid2="7707777ce"
+zoneid="77777718"
 keeptime=1200  #可访问后持续多少秒，进行尝试关盾
 curlnum=5      #测试多少次网站状态码，不建议高于10，数值越高网站压力越大
 minsuc=4    #网站至少正常访问多少次，否则就开验证码
 cfile="/home/cf_curl_code/"
 lasttime=$( cat $cfile"xtime.txt" 2>/dev/null )
-webhost="cangshui.net"
+webhost="cangshui.net"  #你的网站域名
 curlnum="5"
 #==================================================#
 #http状态返回404即正常,因为curl的地址是一个网站+随机字符+.html，状态返回403即为开盾状态，返回500-600为错误代码
