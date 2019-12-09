@@ -5,4 +5,4 @@
 <p>curlauto.sh是使用其他服务器curl网站获得的nginx code 来判断的</p>
 
 <p>详细食用方法</p>
-<a href="https://cangshui.net/?p=4516">https://cangshui.net/?p=4516</a></p>
+<a href="https://cangshui.net/?p=4516">https://cangshui.net/4516.html</a></p>
