@@ -11,7 +11,7 @@ lasttime=$( cat $cfile"xtime.txt" 2>/dev/null )
 #==================================================#
 mkdir "$cfile" 2>/dev/null
 cpu_num=$( grep -c 'model name' /proc/cpuinfo ) #cpu总核数 
-cpu_load=$( uptime | awk '{print $8}' | awk '{sub(/.$/,"")}1' ) #系统1分钟的平均负载 
+cpu_load=$( uptime | awk '{print $10}' | awk '{sub(/.$/,"")}1' ) #系统1分钟的平均负载 
 cpu_load=$(echo "$cpu_load * 100" | bc | awk '{print int($0)}' )
 cpu_maxload=`expr $cpu_num \* $maxload \* 10`
 nowtime=$(date +%s)
